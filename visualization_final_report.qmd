@@ -1,9 +1,164 @@
 ---
 title: "Visualization Final Report"
-author: "Me!"
+author: "Reagan Parker"
+date: 2023-02-10
 format: 
   html: 
-    theme: cosmo
+    theme: architect
 ---
 
-## 
+## Data Visualization Report
+
+### Purpose and Aims
+
+For this report, I will be using data sourced from tidytuesday ("https://www.kaggle.com/datasets/evangower/big-tech-stock-prices") on the stock market prices for big tech companies. I would like to be able to visualize the data via a line graph displaying some aspect of stock market prices over time. I want this type of figure because it reminds me of the prevalent Google figures that pop up when you search the stock market prices.
+
+### The Data
+
+First, I must read in the data in order to use it.
+
+```{r}
+library(tidyverse)
+library(janitor)
+library(fs)
+library(here)
+```
+
+```{r}
+big_tech_stock_prices <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2023/2023-02-07/big_tech_stock_prices.csv')
+big_tech_companies <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2023/2023-02-07/big_tech_companies.csv')
+```
+
+The data table and the big tech companies that will be analyzed are shown below:
+
+```{r}
+big_tech_stock_prices
+```
+
+```{r}
+big_tech_companies
+```
+
+### Refining the Data
+
+#### A new objective
+
+I want to examine the stock prices, for each of the 14 big tech companies in the data, over time. I will begin by selecting/ filtering the data. With the ample amount of data, I decided to focus on the highest price per day and summarize that data into the highest price over time, from 2010 to 2022, per stock company.
+
+```{r}
+big_tech_stock_prices |>
+  select(stock_symbol, date, high)
+```
+
+```{r}
+big_tech_stock_prices |>
+  select(stock_symbol, date, high) 
+```
+
+### Making the Plot
+
+I decided that with the ample amount of data it was going to be a challenge to make it distinguishable with a color scale; this was not legible despite trying many different color scales.
+
+```{r}
+ggplot(
+  data = big_tech_stock_prices, 
+  aes(x = date, 
+      y = high,
+      color = stock_symbol)
+) + 
+  geom_line()+
+  theme_minimal()+
+  scale_color_viridis_d()
+```
+
+So, I decided to label the lines and get rid of the legend.
+
+```{r}
+set.seed(500)
+```
+
+```{r}
+library(geomtextpath)
+```
+
+```{r}
+ggplot(
+  data = big_tech_stock_prices, 
+  aes(x = date, 
+      y = high,
+      color = stock_symbol))+
+  stat_smooth(geom = "textpath", aes(label = stock_symbol, hjust = stock_symbol, vjust = stock_symbol))+
+  scale_color_viridis_d() +
+  guides(color = "none")
+```
+
+Then I decided the colors could still be more distinguishable, so I did some searching and discovered I can create my own color scale. I utilized an established distinguishable color set available online from \[https://stackoverflow.com/questions/9563711/r-color-palettes-for-many-data-classes\] and narrowed it down to 14 colors. You can see this in the color wheel below:
+
+```{r}
+c14 <- c("dodgerblue2", "#E31A1C", "green4", "#6A3D9A", "#FF7F00", "black", "skyblue2", "palegreen2", "#FDBF6F", "gray70", "maroon", "orchid1", "darkturquoise", "darkorange4")
+pie(rep(1, 14), col = c14)
+```
+
+This is what the graph looked like with this custom color scale:
+
+```{r}
+stock_plot <- ggplot(
+  data = big_tech_stock_prices, 
+  aes(x = date, 
+      y = high,
+      color = stock_symbol)
+)+
+  stat_smooth(geom = "textpath", aes(label = stock_symbol, hjust = 1 , vjust = stock_symbol))+
+  scale_color_manual(values = c14) +
+  guides(color = "none")
+stock_plot
+```
+
+```{r}
+stock_plot <- ggplot(
+  data = big_tech_stock_prices, 
+  aes(x = date, 
+      y = high,
+      color = stock_symbol)
+)+
+  stat_smooth(geom = "textpath", aes(label = stock_symbol, hjust = stock_symbol , vjust = -0.2))+
+  scale_color_manual(values = c14) +
+  guides(color = "none")
+stock_plot
+```
+
+Finally, I worked on the theming of the figure.
+
+```{r}
+library(scales)
+```
+
+```{r}
+stock_plot + 
+  labs(y="Stock Price per Share (USD)",
+       x= "Year",
+       title = "Big Tech Companies' Highest Stock Market Prices from 2010-2022",
+       caption = "Source: tidytuesdayR data and Yahoo Finance")+
+  theme_minimal()+
+  theme(
+    plot.title = element_text(family= "Lobster", size= 12, color = "black", angle= 0, vjust = 1, hjust= 0.5), 
+    plot.caption = element_text(family= "Lobster", size= 8, color = "grey60", angle= 0, vjust = 1, hjust= 1)
+  )
+```
+
+## The Final Product
+
+I was able to successfully make the plot I aimed for; mapping the highest stock market price from 2010 to 2022 for 14 different big tech companies. It was very challenging but I was able to utilize my knowledge form class as well as learn from forums and websites. The only way in which the plot fell short was in the visualization of the 2010-2015, as it is quite indistinguishable and methods to fix this comprised the visualization of the graph as a whole, but nonetheless here is the interesting final plot:
+
+```{r}
+stock_plot + 
+  labs(y="Stock Price per Share (USD)",
+       x= "Year",
+       title = "Big Tech Companies' Highest Stock Market Prices from 2010-2022",
+       caption = "Source: tidytuesdayR data and Yahoo Finance")+
+  theme_minimal()+
+  theme(
+    plot.title = element_text(family= "Lobster", size= 12, color = "black", angle= 0, vjust = 1, hjust= 0.5), 
+    plot.caption = element_text(family= "Lobster", size= 8, color = "grey60", angle= 0, vjust = 1, hjust= 1)
+  )
+```
